@@ -1236,10 +1236,17 @@ double SolarModel::Gamma_TP_resonant_m131(double omega, double r) {
     double T = temperature_in_keV(r);
     double u = omega / T;
     double gamma = -gsl_expm1(-u) * interpolate_rosseland_opacity(r);
+     // --- NEW: narrow resonance window around omega_pl(r) = m_a ---
+    gamma = std::max(gamma, 1e-4);
+    double xi2 = gamma * omega;
+    double om2 = omega * omega;
+    double fwhm = (om2 > xi2) ? (sqrt(om2 + xi2) - sqrt(om2 - xi2)) : sqrt(om2 + xi2);
+    double om_pl_sq = omega_pl_squared(r);
+    if (std::abs(std::sqrt(om_pl_sq) - m_keV) > 18.0 * fwhm) { return 0; }
+    // -----------------------------------------------------------
     double average_b_field_sq = gsl_pow_2(bfield(r)) / 3.0;
     double DeltaTsq = g_agg * g_agg * average_b_field_sq / 4.0;
     
-    double om_pl_sq = omega_pl_squared(r);
     double Delta_gamma = -om_pl_sq / (2.0 * omega);
     
     double m2 = m_keV * m_keV;
@@ -1261,10 +1268,17 @@ double SolarModel::Gamma_TP_resonant_m11(double omega, double r) {
     double T = temperature_in_keV(r);
     double u = omega / T;
     double gamma = -gsl_expm1(-u) * interpolate_rosseland_opacity(r);
+     // --- NEW: narrow resonance window around omega_pl(r) = m_a ---
+    gamma = std::max(gamma, 1e-4);
+    double xi2 = gamma * omega;
+    double om2 = omega * omega;
+    double fwhm = (om2 > xi2) ? (sqrt(om2 + xi2) - sqrt(om2 - xi2)) : sqrt(om2 + xi2);
+    double om_pl_sq = omega_pl_squared(r);
+    if (std::abs(std::sqrt(om_pl_sq) - m_keV) > 18.0 * fwhm) { return 0; }
+    // -----------------------------------------------------------
     double average_b_field_sq = gsl_pow_2(bfield(r)) / 3.0;
     double DeltaTsq = g_agg * g_agg * average_b_field_sq / 4.0;
     
-    double om_pl_sq = omega_pl_squared(r);
     double Delta_gamma = -om_pl_sq / (2.0 * omega);
     
     double m2 = m_keV * m_keV;
@@ -1286,10 +1300,17 @@ double SolarModel::Gamma_TP_resonant_m0(double omega, double r) {
     double T = temperature_in_keV(r);
     double u = omega / T;
     double gamma = -gsl_expm1(-u) * interpolate_rosseland_opacity(r);
+    // --- NEW: narrow resonance window around omega_pl(r) = m_a ---
+    gamma = std::max(gamma, 1e-4);
+    double xi2 = gamma * omega; //The Lorentzian width parameter in squared-frequency space.
+    double om2 = omega * omega;
+    double fwhm = (om2 > xi2) ? (sqrt(om2 + xi2) - sqrt(om2 - xi2)) : sqrt(om2 + xi2);
+    double om_pl_sq = omega_pl_squared(r);
+    if (std::abs(std::sqrt(om_pl_sq) - m_keV) > 18.0 * fwhm) { return 0; }
+    // -----------------------------------------------------------
     double average_b_field_sq = gsl_pow_2(bfield(r)) / 3.0;
     double DeltaTsq = g_agg * g_agg * average_b_field_sq / 4.0;
     
-    double om_pl_sq = omega_pl_squared(r);
     double Delta_gamma = -om_pl_sq / (2.0 * omega);
     
     double m2 = m_keV * m_keV;

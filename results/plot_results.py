@@ -218,7 +218,7 @@ def magnetic_field_band(flux):
 
 fig, ax = plt.subplots()
 plot_setup()
-ax.plot(res8[:,0],res8[:,1] /scale,'k--',label=r'TP (m$_a$ = 0 eV, Off-Res)')
+#ax.plot(res8[:,0],res8[:,1] /scale,'k--',label=r'TP (m$_a$ = 0 eV, Off-Res)')
 #ax.plot(TP_resonant_m131[:,0], (TP_resonant_m131[:,1] / scale)-(res8[:,1] /scale), '-', color='#1f77b4', linewidth=2, alpha=0.7, label=r'TP (m$_a$ = 131 eV)')
 
 #ax.plot(TP_resonant_m11[:,0], (TP_resonant_m11[:,1] / scale)-(res8[:,1] /scale) -  (TP_resonant_m0[:,1] / scale) , '-', color="#eb327f", linewidth=2, alpha=0.7, label=r'TP (m$_a$ = 11 eV)')
@@ -226,8 +226,28 @@ ax.plot(res8[:,0],res8[:,1] /scale,'k--',label=r'TP (m$_a$ = 0 eV, Off-Res)')
 #ax.plot(TP_resonant_m0[:,0], (TP_resonant_m0[:,1] / scale)-(res8[:,1] /scale), '-', color='#2ca02c', linewidth=2, alpha=0.7, label=r'TP (m$_a$ = 0 eV)')
 
 # =========================
+# TP (m_a = 0 eV)
+m0 = (res8[:,1] / scale) 
+B_low, B_high = magnetic_field_band(m0)
+ax.fill_between(
+    res8[:,0],
+    B_low,
+    B_high,
+    color="#4EAF21",
+    alpha=0.20,
+    linewidth=0
+)
+ax.plot(
+    res8[:,0],
+    m0,
+    'k--',
+    color="#000000",
+    linewidth=2,
+    alpha=0.7, label=r'TP (m$_a$ = 0 eV)'
+)
+# =========================
 # TP (m_a = 131 eV)
-m131 = (TP_resonant_m131[:,1] / scale) #- (res8[:,1] / scale)- (TP_resonant_m0[:,1] / scale)
+m131 = (TP_resonant_m131[:,1] / scale) 
 B_low, B_high = magnetic_field_band(m131)
 ax.fill_between(
     TP_resonant_m131[:,0],
@@ -247,7 +267,7 @@ ax.plot(
 )
 # =========================
 # TP (m_a = 11 eV)
-m11 = (TP_resonant_m11[:,1] / scale) #- (res8[:,1] / scale)-  (TP_resonant_m0[:,1] / scale)
+m11 = (TP_resonant_m11[:,1] / scale) 
 B_low, B_high = magnetic_field_band(m11)
 ax.fill_between(
     TP_resonant_m11[:,0],
@@ -265,31 +285,12 @@ ax.plot(
     linewidth=2,
     alpha=0.7, label=r'TP (m$_a$ = 11 eV)'
 )
-# =========================
-# TP (m_a = 0 eV)
-m0 = (TP_resonant_m0[:,1] / scale) 
-B_low, B_high = magnetic_field_band(m0)
-ax.fill_between(
-    TP_resonant_m0[:,0],
-    B_low,
-    B_high,
-    color='#2ca02c',
-    alpha=0.20,
-    linewidth=0
-)
-ax.plot(
-    TP_resonant_m0[:,0],
-    m0,
-    '-',
-    color='#2ca02c',
-    linewidth=2,
-    alpha=0.7, label=r'TP (m$_a$ = 0 eV)'
-)
+
 #ax.set_title( r'Transverse plasmon mode: Effect of axion mass ' r'(AGSS09 TP), ' r'$g_{a\gamma} = \SI{5e-11}{\GeV^{-1}}$')
 ax.set_xlabel(r'$\omega$ [keV]')
 ax.set_ylabel(r'$\mathrm{d}\Phi_a/\mathrm{d}\omega$ ' r'[\SI{e10}{\per\cm\squared\per\keV\per\s}]')
-ax.set_xlim([0.001, 16])
-ax.set_ylim([0.001, 1e4])
+ax.set_xlim([0.001, 20])
+ax.set_ylim([0.001, 2e3])
 ax.set_yscale('log')
 ax.set_xscale('log')
 
