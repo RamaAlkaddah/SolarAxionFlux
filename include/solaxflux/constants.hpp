@@ -33,5 +33,4 @@ const double a_Bohr = 5.29177210903e-9; // Bohr radius [cm]
 const double g_aee = 1.0E-13; // default axion-electron coupling
 const double g_agg = 1.0E-16; // default axion-photon coupling [keV^-1]
 const double eV2T = sqrt(4.0*pi)*1.4440271*1.0e-3; // [T / eV^2]
-
 #endif // defined __constants_hpp__

@@ -35,7 +35,12 @@ class SolarModel {
     // Delete copy constructor and assignment operator to avoid shallow copies
     SolarModel(const SolarModel&) = delete;
     SolarModel operator=(const SolarModel&) = delete;
-
+    // Struct for resonant transverse plasmon production rates at different axion masses
+    struct GammaTPResonant {
+      double m131;    // Gamma_TP for m_a = 131 eV
+      double m11;     // Gamma_TP for m_a = 11 eV
+      double m0;      // Gamma_TP for m_a = 0 eV
+    };
     // Solar properties
     // Interpolate numerated data
     double interp_index(int i, double r);
@@ -85,6 +90,12 @@ class SolarModel {
     double Gamma_LP_Rosseland(double omega, double r); // using Rosseland opacities
     double Gamma_TP(double omega, double r); // only non-resonant part (m_a = 0)
     double Gamma_TP_Rosseland(double omega, double r); // using Rosseland opacities; only non-resonant part (m_a = 0)
+    // Resonant (massive) transverse plasmon production rates
+    //GammaTPResonant Gamma_TP_resonant(double omega, double r);
+    double Gamma_TP_resonant_m131(double omega, double r);
+    double Gamma_TP_resonant_m11(double omega, double r);
+
+    double Gamma_TP_resonant_m0(double omega, double r);
     double Gamma_plasmon(double omega, double r); // all plasmon interactions
     double Gamma_all_photon(double omega, double r); // sum over all axion-photon interactions
     // General nuclear transition and most improtant iron 57 

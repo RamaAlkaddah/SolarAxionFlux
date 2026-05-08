@@ -37,11 +37,11 @@ void run_unit_test() {
   }
   auto t1e = time_now();
   std::cout << "\n# Setting up the Solar model '" << solar_model_name << "' took " << duration_cast<seconds>(t1e-t1s).count() << " seconds." << std::endl;
-  const int n_erg_values = 500;
+  const int n_erg_values = 1000;
   const int n_erg_values_LP = 1000;
   const int n_erg_values_Fe57 = 1000;
   std:: vector<double> test_ergs;
-  for (int k=0; k<n_erg_values; k++) { test_ergs.push_back(0.1+k*11.9/n_erg_values); }
+  for (int k=0; k<n_erg_values; k++) { test_ergs.push_back(0.001 + k*15.999/n_erg_values); }
   std:: vector<double> test_ergs_LP;
   for (int k=0; k<n_erg_values_LP; k++) { test_ergs_LP.push_back((0.001*gsl_pow_int(1.006,k))); }
   std::vector<double> test_ergs_Fe;
@@ -76,6 +76,29 @@ void run_unit_test() {
   fully_integrate_d2Phi_a_domega_drho_in_rho(test_ergs, s, &SolarModel::Gamma_TP_Rosseland, output_path + "TP_Rosseland.dat");
   auto t4e = time_now();
   std::cout << "# Calculating the full TP spectrum (Rosseland) (" << n_erg_values << " energy values) took " << duration_cast<seconds>(t4e-t4s).count() << " seconds." << std::endl;
+
+  
+
+  // NEW: Resonant (massive) TP calculations using Gamma_TP_resonant (AGSS09 TP)
+
+  auto t_m131_s = time_now();
+  std::cout << "\n# Calculating resonant transversal plasmon spectrum (m_a = 131 eV)..." << std::endl;
+  fully_integrate_d2Phi_a_domega_drho_in_rho(test_ergs, s, &SolarModel::Gamma_TP_resonant_m131, output_path + "TP_resonant_m131.dat");
+  auto t_m131_e = time_now();
+  std::cout << "# Calculating resonant TP (131 eV) took " << duration_cast<seconds>(t_m131_e-t_m131_s).count() << " seconds." << std::endl;
+  
+  auto t_m11_s = time_now();
+  std::cout << "\n# Calculating resonant transversal plasmon spectrum (m_a = 11 eV)..." << std::endl;
+  fully_integrate_d2Phi_a_domega_drho_in_rho(test_ergs, s, &SolarModel::Gamma_TP_resonant_m11, output_path + "TP_resonant_m11.dat");
+  auto t_m11_e = time_now();
+  std::cout << "# Calculating resonant TP (11 eV) took " << duration_cast<seconds>(t_m11_e-t_m11_s).count() << " seconds." << std::endl;
+
+
+  auto t_m0_s = time_now();
+  std::cout << "\n# Calculating resonant transversal plasmon spectrum (m_a = 0 eV)..." << std::endl;
+  fully_integrate_d2Phi_a_domega_drho_in_rho(test_ergs, s, &SolarModel::Gamma_TP_resonant_m0, output_path + "TP_resonant_m0.dat");
+  auto t_m0_e = time_now();
+  std::cout << "# Calculating resonant TP (0 eV) took " << duration_cast<seconds>(t_m0_e-t_m0_s).count() << " seconds." << std::endl;
 
   auto t5s = time_now();
   std::cout << "\n# Calculating resonant longitudinal plasmon spectrum..." << std::endl;
