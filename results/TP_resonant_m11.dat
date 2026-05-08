@@ -1,8 +1,8 @@
-# 2026-05-06 | 11:03:54 | Calculation performed with SolarAxionFlux v1.1; g_agamma = 1.000000e-10 GeV^-1, g_ae = 1.000000e-13.
+# 2026-05-08 | 12:00:13 | Calculation performed with SolarAxionFlux v1.1; g_agamma = 1.000000e-10 GeV^-1, g_ae = 1.000000e-13.
 # Spectral flux over full solar volume.
 # Columns: energy values [keV] | axion flux [cm^-2 s^-1 keV^-1]
-1.00000000e-03 1.51172311e+06
-1.69990000e-02 4.17424154e+08
+1.00000000e-03 1.51172312e+06
+1.69990000e-02 4.17424153e+08
 3.29980000e-02 1.50197752e+09
 4.89970000e-02 3.15998463e+09
 6.49960000e-02 5.30248155e+09
