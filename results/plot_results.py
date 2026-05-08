@@ -5,6 +5,10 @@ plt.rcParams['font.family'] = 'monospace'
 plt.rcParams['font.monospace'] = ['Courier New']
 plt.rcParams['font.size']= 14
 from scipy.interpolate import interp1d
+try:
+    from lib import pyaxionflux as afl
+except Exception:
+    afl = None
 
 # Get the path of the script
 script_path = os.path.dirname(os.path.realpath(__file__))
@@ -31,6 +35,27 @@ def plot_setup(size=6,ratio=0.618):
     ax.tick_params(which='both', direction='in', bottom=True, top=True, left=True, right=True)
     ax.tick_params(which='major', length=6)
     ax.tick_params(which='minor', length=4)
+
+
+def get_tp_bfield_variation_spectra(energies):
+    base_b = np.array([3.0e3, 50.0, 4.0], dtype=float)
+    scenarios = {
+        "low": 0.5 * base_b,
+        "mid": base_b,
+        "high": 1.5 * base_b,
+    }
+    solar_model_file = script_path + "/../data/solar_models/SolarModel_B16-AGSS09.dat"
+    spectra = {}
+    for name, bvals in scenarios.items():
+        root = script_path + f"/TP_B_{name}"
+        path = root + "_plasmon.dat"
+        if not os.path.exists(path):
+            if afl is None:
+                print(f"WARNING: {path} not found and pyaxionflux is unavailable. Skipping B-variation band.")
+                return None
+            afl.calculate_varied_spectra(energies.tolist(), solar_model_file, root, 0.0, 0.0, bvals.tolist())
+        spectra[name] = np.genfromtxt(path)
+    return spectra
 
 # Load benchmark files
 common_path = script_path+"/../data/benchmarks/"
@@ -86,6 +111,7 @@ except:
 
 # Conversion factor
 conv_factor = 1.0e-4/(365.0*24.0*60.0*60.0*1.0e10)
+tp_b_variation = get_tp_bfield_variation_spectra(res8[:,0])
 
 ## Validation plots for axion-photon interactions
 # Primakoff approximation [hep-ex/0702006] based on [astro-ph/0402114]
@@ -143,11 +169,26 @@ scale=(1.0)
 #ax.plot(res7[:,0], res7[:,1]/1.0e10, 'k-', label=r'LP (AGSS09)')
 ax.plot(ref8[:,0], ((ref8[:,1]/scale)*(3/5)**2), '-', color='gold', label=r'LP$_{Caputo}$') #correct  field values
 ax.plot(res9[:,0], ((res9[:,1])/scale), 'k--', label=r'LP$_{Rosseland}$')
-ax.plot(res8[:,0],((res8[:,1]) /scale),'k--',color='red',label=r'TP$_{Off-Res}$')
+if tp_b_variation is not None:
+    tp_mid = tp_b_variation["mid"]
+    tp_low = tp_b_variation["low"]
+    tp_high = tp_b_variation["high"]
+    tp_x = tp_mid[:,0]
+    tp_y_mid = tp_mid[:,1] / scale
+    tp_y_low = np.interp(tp_x, tp_low[:,0], tp_low[:,1], left=0.0, right=0.0) / scale
+    tp_y_high = np.interp(tp_x, tp_high[:,0], tp_high[:,1], left=0.0, right=0.0) / scale
+    ax.fill_between(tp_x, tp_y_low, tp_y_high, color='red', alpha=0.20, label=r'TP$_{Off-Res}$, $B\pm\sigma_B$')
+    ax.plot(tp_x, tp_y_mid, '-', color='red', label=r'TP$_{Off-Res}$ (central $B$)')
+else:
+    ax.plot(res8[:,0], ((res8[:,1]) /scale), 'k--', color='red', label=r'TP$_{Off-Res}$')
 
 #ax.plot(ref6[:,0], (ref6[:,1]), '-', color='green', label=r'LP (Giannotti)') # correct coupling
 #ax.plot(ref7[:,0], (ref7[:,1]/5.0e-1)*1.0/1.7856, '--', color='orange', label=r'LP (O´Hare)') # correct coupling and angular average
-ax.plot(res1[:,0], (res1[:,1]/scale)+((res8[:,1]) /scale) , 'k-',color='magenta', label=r'Primakoff+TP')
+if tp_b_variation is not None:
+    tp_mid_on_p = np.interp(res1[:,0], tp_mid[:,0], tp_mid[:,1], left=0.0, right=0.0) / scale
+    ax.plot(res1[:,0], (res1[:,1]/scale) + tp_mid_on_p, 'k-', color='magenta', label=r'Primakoff+TP')
+else:
+    ax.plot(res1[:,0], (res1[:,1]/scale)+((res8[:,1]) /scale), 'k-', color='magenta', label=r'Primakoff+TP')
 ax.plot(res1[:,0], (res1[:,1]/scale), 'k--',color='blue', label=r'Primakoff')
 
 ''' befor i edit them:
