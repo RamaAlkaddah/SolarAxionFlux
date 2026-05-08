@@ -29,7 +29,10 @@ col_bp04 = '#ABD9E9'
 col_bp00 = '#74ADD1'
 col_bp98 = '#4575B4'
 col_gs98 = '#313695'
+# Label constants
 TP_OFFRES_LABEL = r'TP$_{Off-Res}$'
+OPACITY_VAR_A = 0.0
+OPACITY_VAR_B = 0.0
 
 def plot_setup(size=6,ratio=0.618):
     fig.set_size_inches(size,ratio*size)
@@ -40,22 +43,26 @@ def plot_setup(size=6,ratio=0.618):
 
 def get_tp_bfield_variation_spectra(energies):
     # [b_rad, b_tach, b_outer] in Tesla (radiative zone, tachocline, outer region).
-    base_b = np.array([3.0e3, 50.0, 4.0], dtype=float)
+    base_b = np.array([
+        3.0e3,  # radiative zone (T)
+        50.0,   # tachocline (T)
+        4.0     # outer region (T)
+    ], dtype=float)
     scenarios = {
         "low": 0.5 * base_b,
         "mid": base_b,
         "high": 1.5 * base_b,
     }
-    solar_model_file = script_path + "/../data/solar_models/SolarModel_B16-AGSS09.dat"
+    solar_model_file = os.path.join(script_path, "..", "data", "solar_models", "SolarModel_B16-AGSS09.dat")
     spectra = {}
     for name, bvals in scenarios.items():
-        root = script_path + f"/TP_B_{name}"
+        root = os.path.join(script_path, f"TP_B_{name}")
         path = root + "_plasmon.dat"
         if not os.path.exists(path):
             if afl is None:
                 print(f"WARNING: {path} not found and pyaxionflux is unavailable. Skipping B-variation band.")
                 return None
-            afl.calculate_varied_spectra(energies.tolist(), solar_model_file, root, 0.0, 0.0, bvals.tolist())
+            afl.calculate_varied_spectra(energies.tolist(), solar_model_file, root, OPACITY_VAR_A, OPACITY_VAR_B, bvals.tolist())
         spectra[name] = np.genfromtxt(path)
     return spectra
 
@@ -177,8 +184,9 @@ if tp_b_variation is not None:
     tp_high = tp_b_variation["high"]
     tp_x = tp_mid[:,0]
     tp_y_mid = tp_mid[:,1] / scale
-    tp_y_low = np.interp(tp_x, tp_low[:,0], tp_low[:,1], left=0.0, right=0.0) / scale
-    tp_y_high = np.interp(tp_x, tp_high[:,0], tp_high[:,1], left=0.0, right=0.0) / scale
+    interp_scaled = lambda arr: np.interp(tp_x, arr[:,0], arr[:,1], left=0.0, right=0.0) / scale
+    tp_y_low = interp_scaled(tp_low)
+    tp_y_high = interp_scaled(tp_high)
     ax.fill_between(tp_x, tp_y_low, tp_y_high, color='red', alpha=0.20, label=TP_OFFRES_LABEL + r', $B\pm\sigma_B$')
     ax.plot(tp_x, tp_y_mid, '-', color='red', label=TP_OFFRES_LABEL + r' (central $B$)')
 else:
