@@ -7,7 +7,7 @@ plt.rcParams['font.size']= 14
 from scipy.interpolate import interp1d
 try:
     from lib import pyaxionflux as afl
-except Exception:
+except (ImportError, ModuleNotFoundError):
     afl = None
 
 # Get the path of the script
@@ -29,6 +29,7 @@ col_bp04 = '#ABD9E9'
 col_bp00 = '#74ADD1'
 col_bp98 = '#4575B4'
 col_gs98 = '#313695'
+TP_OFFRES_LABEL = r'TP$_{Off-Res}$'
 
 def plot_setup(size=6,ratio=0.618):
     fig.set_size_inches(size,ratio*size)
@@ -38,6 +39,7 @@ def plot_setup(size=6,ratio=0.618):
 
 
 def get_tp_bfield_variation_spectra(energies):
+    # [b_rad, b_tach, b_outer] in Tesla (radiative zone, tachocline, outer region).
     base_b = np.array([3.0e3, 50.0, 4.0], dtype=float)
     scenarios = {
         "low": 0.5 * base_b,
@@ -177,10 +179,10 @@ if tp_b_variation is not None:
     tp_y_mid = tp_mid[:,1] / scale
     tp_y_low = np.interp(tp_x, tp_low[:,0], tp_low[:,1], left=0.0, right=0.0) / scale
     tp_y_high = np.interp(tp_x, tp_high[:,0], tp_high[:,1], left=0.0, right=0.0) / scale
-    ax.fill_between(tp_x, tp_y_low, tp_y_high, color='red', alpha=0.20, label=r'TP$_{Off-Res}$, $B\pm\sigma_B$')
-    ax.plot(tp_x, tp_y_mid, '-', color='red', label=r'TP$_{Off-Res}$ (central $B$)')
+    ax.fill_between(tp_x, tp_y_low, tp_y_high, color='red', alpha=0.20, label=TP_OFFRES_LABEL + r', $B\pm\sigma_B$')
+    ax.plot(tp_x, tp_y_mid, '-', color='red', label=TP_OFFRES_LABEL + r' (central $B$)')
 else:
-    ax.plot(res8[:,0], ((res8[:,1]) /scale), 'k--', color='red', label=r'TP$_{Off-Res}$')
+    ax.plot(res8[:,0], ((res8[:,1]) /scale), 'k--', color='red', label=TP_OFFRES_LABEL)
 
 #ax.plot(ref6[:,0], (ref6[:,1]), '-', color='green', label=r'LP (Giannotti)') # correct coupling
 #ax.plot(ref7[:,0], (ref7[:,1]/5.0e-1)*1.0/1.7856, '--', color='orange', label=r'LP (O´Hare)') # correct coupling and angular average
