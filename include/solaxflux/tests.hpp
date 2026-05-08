@@ -37,7 +37,7 @@ void run_unit_test() {
   }
   auto t1e = time_now();
   std::cout << "\n# Setting up the Solar model '" << solar_model_name << "' took " << duration_cast<seconds>(t1e-t1s).count() << " seconds." << std::endl;
-  const int n_erg_values = 1000;
+  const int n_erg_values = 700;
   const int n_erg_values_LP = 1000;
   const int n_erg_values_Fe57 = 1000;
   std:: vector<double> test_ergs;

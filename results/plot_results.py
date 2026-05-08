@@ -135,8 +135,8 @@ plt.close()
 
 fig, ax = plt.subplots()
 plot_setup()
-#scale=(1.0e10)
-scale=(1.0)
+scale=(1.0e10)
+#scale=(1.0)
 
 #ax.plot(omega, 6.02*omega**2.481*np.exp(-omega/1.205),':', color=col_agss09, label=r'Primakoff approx. (BP04)')
 #ax.plot(ref1[:,0], conv_factor*(1.0e4/50.0)*ref1[:,1], '-', color=col_b16agss09, label=r'Primakoff (Redondo)')
@@ -209,31 +209,97 @@ plt.close()
 
 
 ## Massive TP comparison plot (AGSS09 TP)
+# ==========================================
+# Magnetic-field uncertainty helper, Flux scales as B^2
+def magnetic_field_band(flux):
+    B_low  = 0.25 * flux    # low  = (0.5B)^2 = 0.25
+    B_high = 2.25 * flux   # high = (1.5B)^2 = 2.25
+    return B_low, B_high
 
 fig, ax = plt.subplots()
 plot_setup()
-ax.plot(res8[:,0],res8[:,1] / 1.0e10,'k--',label=r'TP (m$_a$ = 0 eV, Off-Res)')
-ax.plot(TP_resonant_m131[:,0], (TP_resonant_m131[:,1] / 1.0e10)-(res8[:,1] / 1.0e10), '-', color='#1f77b4', linewidth=2, alpha=0.7, label=r'TP (m$_a$ = 131 eV)')
+ax.plot(res8[:,0],res8[:,1] /scale,'k--',label=r'TP (m$_a$ = 0 eV, Off-Res)')
+#ax.plot(TP_resonant_m131[:,0], (TP_resonant_m131[:,1] / scale)-(res8[:,1] /scale), '-', color='#1f77b4', linewidth=2, alpha=0.7, label=r'TP (m$_a$ = 131 eV)')
 
-ax.plot(TP_resonant_m11[:,0], (TP_resonant_m11[:,1] / 1.0e10) , '-', color="#eb327f", linewidth=2, alpha=0.7, label=r'TP (m$_a$ = 11 eV)')
+#ax.plot(TP_resonant_m11[:,0], (TP_resonant_m11[:,1] / scale)-(res8[:,1] /scale) -  (TP_resonant_m0[:,1] / scale) , '-', color="#eb327f", linewidth=2, alpha=0.7, label=r'TP (m$_a$ = 11 eV)')
 
-ax.plot(TP_resonant_m0[:,0], (TP_resonant_m0[:,1] / 1.0e10)-(res8[:,1] / 1.0e10), '-', color='#2ca02c', linewidth=2, alpha=0.7, label=r'TP (m$_a$ = 0 eV)')
+#ax.plot(TP_resonant_m0[:,0], (TP_resonant_m0[:,1] / scale)-(res8[:,1] /scale), '-', color='#2ca02c', linewidth=2, alpha=0.7, label=r'TP (m$_a$ = 0 eV)')
 
+# =========================
+# TP (m_a = 131 eV)
+m131 = (TP_resonant_m131[:,1] / scale) #- (res8[:,1] / scale)- (TP_resonant_m0[:,1] / scale)
+B_low, B_high = magnetic_field_band(m131)
+ax.fill_between(
+    TP_resonant_m131[:,0],
+    B_low,
+    B_high,
+    color='#1f77b4',
+    alpha=0.20,
+    linewidth=0
+)
+ax.plot(
+    TP_resonant_m131[:,0],
+    m131,
+    '-',
+    color='#1f77b4',
+    linewidth=2,
+    alpha=0.7, label=r'TP (m$_a$ = 131 eV)'
+)
+# =========================
+# TP (m_a = 11 eV)
+m11 = (TP_resonant_m11[:,1] / scale) #- (res8[:,1] / scale)-  (TP_resonant_m0[:,1] / scale)
+B_low, B_high = magnetic_field_band(m11)
+ax.fill_between(
+    TP_resonant_m11[:,0],
+    B_low,
+    B_high,
+    color="#eb327f",
+    alpha=0.20,
+    linewidth=0
+)
+ax.plot(
+    TP_resonant_m11[:,0],
+    m11,
+    '-',
+    color="#eb327f",
+    linewidth=2,
+    alpha=0.7, label=r'TP (m$_a$ = 11 eV)'
+)
+# =========================
+# TP (m_a = 0 eV)
+m0 = (TP_resonant_m0[:,1] / scale) 
+B_low, B_high = magnetic_field_band(m0)
+ax.fill_between(
+    TP_resonant_m0[:,0],
+    B_low,
+    B_high,
+    color='#2ca02c',
+    alpha=0.20,
+    linewidth=0
+)
+ax.plot(
+    TP_resonant_m0[:,0],
+    m0,
+    '-',
+    color='#2ca02c',
+    linewidth=2,
+    alpha=0.7, label=r'TP (m$_a$ = 0 eV)'
+)
 #ax.set_title( r'Transverse plasmon mode: Effect of axion mass ' r'(AGSS09 TP), ' r'$g_{a\gamma} = \SI{5e-11}{\GeV^{-1}}$')
 ax.set_xlabel(r'$\omega$ [keV]')
 ax.set_ylabel(r'$\mathrm{d}\Phi_a/\mathrm{d}\omega$ ' r'[\SI{e10}{\per\cm\squared\per\keV\per\s}]')
-ax.set_xlim([0.001, 20])
-ax.set_ylim([0.00001, 1e3])
+ax.set_xlim([0.001, 16])
+ax.set_ylim([0.001, 1e4])
 ax.set_yscale('log')
 ax.set_xscale('log')
 
-ax.legend(frameon=False, loc='best')
+ax.legend(frameon=False, loc='upper left')
 
 # ax.grid(True, alpha=0.3, which='both')
 
 plt.savefig(script_path + "/massive_TP_comparison.pdf", bbox_inches='tight')
 
-# plt.show()
+plt.show()
 
 plt.close()
 #plt.close()

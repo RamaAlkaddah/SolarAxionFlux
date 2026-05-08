@@ -94,7 +94,6 @@ class SolarModel {
     //GammaTPResonant Gamma_TP_resonant(double omega, double r);
     double Gamma_TP_resonant_m131(double omega, double r);
     double Gamma_TP_resonant_m11(double omega, double r);
-
     double Gamma_TP_resonant_m0(double omega, double r);
     double Gamma_plasmon(double omega, double r); // all plasmon interactions
     double Gamma_all_photon(double omega, double r); // sum over all axion-photon interactions
