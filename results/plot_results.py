@@ -219,7 +219,7 @@ def magnetic_field_band(flux):
 fig, ax = plt.subplots()
 plot_setup()
 #ax.plot(res8[:,0],res8[:,1] /scale,'k--',label=r'TP (m$_a$ = 0 eV, Off-Res)')
-#ax.plot(TP_resonant_m131[:,0], (TP_resonant_m131[:,1] / scale)-(res8[:,1] /scale), '-', color='#1f77b4', linewidth=2, alpha=0.7, label=r'TP (m$_a$ = 131 eV)')
+#ax.plot(TP_resonant_m200[:,0], (TP_resonant_m200[:,1] / scale)-(res8[:,1] /scale), '-', color='#1f77b4', linewidth=2, alpha=0.7, label=r'TP (m$_a$ = 200 eV)')
 
 #ax.plot(TP_resonant_m11[:,0], (TP_resonant_m11[:,1] / scale)-(res8[:,1] /scale) -  (TP_resonant_m0[:,1] / scale) , '-', color="#eb327f", linewidth=2, alpha=0.7, label=r'TP (m$_a$ = 11 eV)')
 

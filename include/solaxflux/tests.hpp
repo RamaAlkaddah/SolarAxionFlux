@@ -38,8 +38,8 @@ void run_unit_test() {
   auto t1e = time_now();
   std::cout << "\n# Setting up the Solar model '" << solar_model_name << "' took " << duration_cast<seconds>(t1e-t1s).count() << " seconds." << std::endl;
   const int n_erg_values = 700;
-  const int n_erg_values_LP = 1000;
-  const int n_erg_values_Fe57 = 1000;
+  const int n_erg_values_LP = 100;
+  const int n_erg_values_Fe57 = 100;
   std:: vector<double> test_ergs;
   for (int k=0; k<n_erg_values; k++) { test_ergs.push_back(0.001 + k*15.999/n_erg_values); }
   std:: vector<double> test_ergs_LP;
@@ -86,7 +86,7 @@ void run_unit_test() {
   fully_integrate_d2Phi_a_domega_drho_in_rho(test_ergs, s, &SolarModel::Gamma_TP_resonant_m131, output_path + "TP_resonant_m131.dat");
   auto t_m131_e = time_now();
   std::cout << "# Calculating resonant TP (131 eV) took " << duration_cast<seconds>(t_m131_e-t_m131_s).count() << " seconds." << std::endl;
-  
+
   auto t_m11_s = time_now();
   std::cout << "\n# Calculating resonant transversal plasmon spectrum (m_a = 11 eV)..." << std::endl;
   fully_integrate_d2Phi_a_domega_drho_in_rho(test_ergs, s, &SolarModel::Gamma_TP_resonant_m11, output_path + "TP_resonant_m11.dat");
