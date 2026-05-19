@@ -1,4 +1,4 @@
-# 2026-05-10 | 23:04:01 | Calculation performed with SolarAxionFlux v1.1; g_agamma = 5.000000e-11 GeV^-1, g_ae = 1.000000e-13.
+# 2026-05-16 | 21:58:16 | Calculation performed with SolarAxionFlux v1.1; g_agamma = 5.000000e-11 GeV^-1, g_ae = 1.000000e-13.
 # Total spectral flux for a given radius.
 # Columns: Radius on solar disc [R_sol], Axion flux [cm^-2 s^-1] |  Axion flux error estimate [cm^-2 s^-1]
 0.00000000e+00 0.00000000e+00 0.00000000e+00

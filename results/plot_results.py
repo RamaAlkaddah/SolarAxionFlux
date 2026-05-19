@@ -141,14 +141,31 @@ scale=(1.0e10)
 #ax.plot(omega, 6.02*omega**2.481*np.exp(-omega/1.205),':', color=col_agss09, label=r'Primakoff approx. (BP04)')
 #ax.plot(ref1[:,0], conv_factor*(1.0e4/50.0)*ref1[:,1], '-', color=col_b16agss09, label=r'Primakoff (Redondo)')
 #ax.plot(res7[:,0], res7[:,1]/1.0e10, 'k-', label=r'LP (AGSS09)')
-ax.plot(ref8[:,0], ((ref8[:,1]/scale)*(3/5)**2), '-', color='gold', label=r'LP$_{Caputo}$') #correct  field values
-ax.plot(res9[:,0], ((res9[:,1])/scale), 'k--', label=r'LP$_{Rosseland}$')
+
+# Create a common energy grid
+energy_min = 0.001  # keV
+energy_max = 10.0   # keV
+common_energy = np.logspace(np.log10(energy_min), np.log10(energy_max), 500)
+
+# Evaluate each flux at the common energy grid
+flux2 = interp1d(res9[:,0], (res9[:,1])/scale, bounds_error=False, fill_value=0)(common_energy)
+flux3 = interp1d(res8[:,0], (res8[:,1])/scale, bounds_error=False, fill_value=0)(common_energy)
+flux4 = interp1d(res1[:,0], (res1[:,1]/scale), bounds_error=False, fill_value=0)(common_energy)
+
+# Sum them
+total_flux = flux2 + flux3 + flux4
+
+# Plot individual components
+ax.plot(ref8[:,0], ((ref8[:,1]/scale)*(3/5)**2 /4), '.-', color='gold', label=r'LP$_{Caputo} * (3/5)^2$') #correct  field values *(3/5)**2 /4
+ax.plot(res9[:,0], ((res9[:,1])/scale), 'k-', label=r'LP$_{Rosseland}$')
 ax.plot(res8[:,0],((res8[:,1]) /scale),'k--',color='red',label=r'TP$_{Off-Res}$')
 
-#ax.plot(ref6[:,0], (ref6[:,1]), '-', color='green', label=r'LP (Giannotti)') # correct coupling
 #ax.plot(ref7[:,0], (ref7[:,1]/5.0e-1)*1.0/1.7856, '--', color='orange', label=r'LP (O´Hare)') # correct coupling and angular average
-ax.plot(res1[:,0], (res1[:,1]/scale)+((res8[:,1]) /scale) , 'k-',color='magenta', label=r'Primakoff+TP')
 ax.plot(res1[:,0], (res1[:,1]/scale), 'k--',color='blue', label=r'Primakoff')
+
+# Plot total flux (the sum of all 4)
+ax.plot(common_energy, total_flux, 'k--',linewidth=2 ,color='magenta', label=r'Total')
+
 
 ''' befor i edit them:
 Caputo ×(3/5)² ≈ 0.36 (to account for field scaling differences) *(3/5)**2
@@ -156,8 +173,9 @@ Giannotti ×4 (to normalize coupling constants)'''
 #ax.set_title(r'Axion-photon interactions, $g_{a\gamma} = \SI{5e-11}{\GeV^{-1}}$, OP opacities')
 ax.set_xlabel(r'$\omega$ [keV]')
 ax.set_ylabel(r'$\mathrm{d}\Phi_a/\mathrm{d}\omega$ [\SI{}{\per\cm\squared\per\keV\per\s}]')
-ax.set_xlim([1.0e-4,16])
-ax.set_ylim([6.0e3, 1.0e12])
+ax.set_xlim([1.0e-3,10])
+ax.set_ylim([2.0e3, 1.0e12])
+
 ax.set_yscale('log')
 ax.set_xscale('log')
 plt.legend(loc='upper left')
@@ -218,16 +236,8 @@ def magnetic_field_band(flux):
 
 fig, ax = plt.subplots()
 plot_setup()
-#ax.plot(res8[:,0],res8[:,1] /scale,'k--',label=r'TP (m$_a$ = 0 eV, Off-Res)')
-#ax.plot(TP_resonant_m200[:,0], (TP_resonant_m200[:,1] / scale)-(res8[:,1] /scale), '-', color='#1f77b4', linewidth=2, alpha=0.7, label=r'TP (m$_a$ = 200 eV)')
-
-#ax.plot(TP_resonant_m11[:,0], (TP_resonant_m11[:,1] / scale)-(res8[:,1] /scale) -  (TP_resonant_m0[:,1] / scale) , '-', color="#eb327f", linewidth=2, alpha=0.7, label=r'TP (m$_a$ = 11 eV)')
-
-#ax.plot(TP_resonant_m0[:,0], (TP_resonant_m0[:,1] / scale)-(res8[:,1] /scale), '-', color='#2ca02c', linewidth=2, alpha=0.7, label=r'TP (m$_a$ = 0 eV)')
-
-# =========================
 # TP (m_a = 0 eV)
-m0 = (res8[:,1] / scale) 
+m0 = (res8[:,1] / scale)  #this is  off resonant one based on Rosseland, but we want to show the magnetic field uncertainty band
 B_low, B_high = magnetic_field_band(m0)
 ax.fill_between(
     res8[:,0],
@@ -285,8 +295,9 @@ ax.plot(
     linewidth=2,
     alpha=0.7, label=r'TP (m$_a$ = 11 eV)'
 )
+#ax.plot(ref5[:,0], ref5[:,1]*1.4995, '-', color='green', label=r'TP (Giannotti)')#correct B conversion in giannotti result and adjust coupling constant
+ax.plot(res1[:,0], (res1[:,1]/scale), 'k--',color='blue', label=r'Primakoff')
 
-#ax.set_title( r'Transverse plasmon mode: Effect of axion mass ' r'(AGSS09 TP), ' r'$g_{a\gamma} = \SI{5e-11}{\GeV^{-1}}$')
 ax.set_xlabel(r'$\omega$ [keV]')
 ax.set_ylabel(r'$\mathrm{d}\Phi_a/\mathrm{d}\omega$ ' r'[\SI{e10}{\per\cm\squared\per\keV\per\s}]')
 ax.set_xlim([0.001, 20])
@@ -304,3 +315,12 @@ plt.show()
 
 plt.close()
 #plt.close()
+import numpy as np
+# Coupling constant normalization
+g_10_squared = 0.25
+total_flux_m131 = np.trapezoid(TP_resonant_m131[:, 1], TP_resonant_m131[:, 0]) / g_10_squared
+total_flux_m11 = np.trapezoid(TP_resonant_m11[:, 1], TP_resonant_m11[:, 0]) / g_10_squared
+total_flux_m0 = np.trapezoid(res8[:, 1], res8[:, 0]) / g_10_squared
+print(f"\nTotal TP flux (m=131 eV): {total_flux_m131:.4e} g_10^2 cm^-2 s^-1")
+print(f"Total TP flux (m=11 eV): {total_flux_m11:.4e} g_10^2 cm^-2 s^-1")
+print(f"Total m0 non-resonant flux: {total_flux_m0:.4e} g_10^2 cm^-2 s^-1")
