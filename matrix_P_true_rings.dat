@@ -1,4 +1,4 @@
-# 2026-05-16 | 22:06:12 | Calculation performed with SolarAxionFlux v1.1; g_agamma = 5.000000e-11 GeV^-1, g_ae = 1.000000e-13.
+# 2026-06-09 | 22:43:07 | Calculation performed with SolarAxionFlux v1.1; g_agamma = 5.000000e-11 GeV^-1, g_ae = 1.000000e-13.
 # Spectral flux over rings on the solar disc.
 # Columns: Inner radius on solar disc [R_sol] | Outer radius [R_sol] | Energy [keV] | Axion flux [cm^-2 s^-1 keV^-1]
 0.00000000e+00 1.00000000e-02 1.00000000e-02 8.33738968e-02

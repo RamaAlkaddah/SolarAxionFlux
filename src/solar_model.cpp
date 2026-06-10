@@ -1138,188 +1138,55 @@ double SolarModel::Gamma_TP_Rosseland(double omega, double r) {
   return result;
 }
 
-/*SolarModel::GammaTPResonant SolarModel::Gamma_TP_resonant(double omega, double r) {
-
+//this will also use Rosseland opacity and it a main private function  
+double SolarModel::Gamma_TP_resonant(double omega, double r, double m_keV) {
     static const double geom_factor = 1.0;
     static const double photon_polarization = 2.0;
 
-    // --- fixed axion masses (in keV) ---
-    const double m_eV_131 = 0.131;
-    const double m_eV_11  = 0.011;
-    const double m_eV_0   = 0.000;
-
-    GammaTPResonant out{0.000, 0.000, 0.000};
-
-    double om2      = omega * omega;
-    double om_pl_sq = omega_pl_squared(r);
-
-    // Suppress extremely low energies (below ~1 meV) to avoid numerical issues
-    if (omega < 1e-6) {
-        return out;
-    }
-    
-    // For massive resonances, allow energies below ω_pl down to the mass threshold
-    // The resonance condition is ω ≈ √(ω_pl² - m_a²), so we remove the strict ω_pl guard
-    // and rely on Breit-Wigner damping to suppress unphysical regions
-
-    double T = temperature_in_keV(r);
-    double u = omega / T;
-
-    // photon damping rate from opacity (frequency-dependent)
-    double gamma = -gsl_expm1(-u) * interpolate_rosseland_opacity(r);
-
-    // average transverse B^2
-    double average_b_field_sq = gsl_pow_2(bfield(r)) / 3.0;
-
-    // Δ_T^2 = g_{aγ}^2 ⟨B_T^2⟩ / 4
-    double DeltaTsq = g_agg * g_agg * average_b_field_sq / 4.0;
-
-    // Δ_γ = -ω_pl^2 / (2ω)
-    double Delta_gamma = -om_pl_sq / (2.0 * omega);
-
-    auto rate_for_mass = [&](double m_keV) -> double {
-
-        double m2 = m_keV * m_keV;
-
-        // Δ_a = -m_a^2 / (2ω)
-        double Delta_a = -m2 / (2.0 * omega);
-
-        // Δ_γ - Δ_a
-        double Delta_diff = Delta_gamma - Delta_a;
-
-        // Breit–Wigner denominator
-        double denom = gsl_pow_2(Delta_diff)
-                     + gsl_pow_2(0.5 * gamma);
-
-        // full TP rate
-        double result = geom_factor
-                      * photon_polarization
-                      * gamma
-                      * DeltaTsq
-                      / (denom * gsl_expm1(u));
-
-        return result;
-    };
-
-    out.m131 = rate_for_mass(m_eV_131);
-    out.m11  = rate_for_mass(m_eV_11);
-    out.m0   = rate_for_mass(m_eV_0);
-
-    return out;
-}
-*/
-
-// Wrapper functions to extract individual masses from
-// Gamma_TP_resonant for integration
-
-/*double SolarModel::Gamma_TP_resonant_m131(double omega, double r) {
-    return Gamma_TP_resonant(omega, r).m131;
-}
-
-double SolarModel::Gamma_TP_resonant_m11(double omega, double r) {
-    return Gamma_TP_resonant(omega, r).m11;
-}
-
-double SolarModel::Gamma_TP_resonant_m0(double omega, double r) {
-    return Gamma_TP_resonant(omega, r).m0;
-}*/
-// Remove the Gamma_TP_resonant function entirely
-
-double SolarModel::Gamma_TP_resonant_m131(double omega, double r) {
-    static const double geom_factor = 1.0;
-    static const double photon_polarization = 2.0;
-    const double m_keV = 0.131;  // 131 eV in keV
-    
     // Full Breit-Wigner calculation inline
     if (omega < 1e-6) return 0;
-    
-    double T = temperature_in_keV(r);
-    double u = omega / T;
-    double gamma = -gsl_expm1(-u) * interpolate_rosseland_opacity(r);
-     // --- NEW: narrow resonance window around omega_pl(r) = m_a ---
-    gamma = std::max(gamma, 1e-4);
-    double xi2 = gamma * omega;
-    double om2 = omega * omega;
-    double fwhm = (om2 > xi2) ? (sqrt(om2 + xi2) - sqrt(om2 - xi2)) : sqrt(om2 + xi2);
-    double om_pl_sq = omega_pl_squared(r);
-    if (std::abs(std::sqrt(om_pl_sq) - m_keV) > 18.0 * fwhm) { return 0; }
-    // -----------------------------------------------------------
-    double average_b_field_sq = gsl_pow_2(bfield(r)) / 3.0;
-    double DeltaTsq = g_agg * g_agg * average_b_field_sq / 4.0;
-    
-    double Delta_gamma = -om_pl_sq / (2.0 * omega);
-    
-    double m2 = m_keV * m_keV;
-    double Delta_a = -m2 / (2.0 * omega);
-    double Delta_diff = Delta_gamma - Delta_a;
-    
-    double denom = gsl_pow_2(Delta_diff) + gsl_pow_2(0.5 * gamma);
-    return geom_factor * photon_polarization * gamma * DeltaTsq / (denom * gsl_expm1(u));
-}
 
-double SolarModel::Gamma_TP_resonant_m11(double omega, double r) {
-    static const double geom_factor = 1.0;
-    static const double photon_polarization = 2.0;
-    const double m_keV = 0.011;  // 11 eV in keV
-    
-    // Full Breit-Wigner calculation inline
-    if (omega < 1e-6) return 0;
-    
-    double T = temperature_in_keV(r);
-    double u = omega / T;
-    double gamma = -gsl_expm1(-u) * interpolate_rosseland_opacity(r);
-     // --- NEW: narrow resonance window around omega_pl(r) = m_a ---
-    gamma = std::max(gamma, 1e-4);
-    double xi2 = gamma * omega;
-    double om2 = omega * omega;
-    double fwhm = (om2 > xi2) ? (sqrt(om2 + xi2) - sqrt(om2 - xi2)) : sqrt(om2 + xi2);
-    double om_pl_sq = omega_pl_squared(r);
-    if (std::abs(std::sqrt(om_pl_sq) - m_keV) > 18.0 * fwhm) { return 0; }
-    // -----------------------------------------------------------
-    double average_b_field_sq = gsl_pow_2(bfield(r)) / 3.0;
-    double DeltaTsq = g_agg * g_agg * average_b_field_sq / 4.0;
-    
-    double Delta_gamma = -om_pl_sq / (2.0 * omega);
-    
-    double m2 = m_keV * m_keV;
-    double Delta_a = -m2 / (2.0 * omega);
-    double Delta_diff = Delta_gamma - Delta_a;
-    
-    double denom = gsl_pow_2(Delta_diff) + gsl_pow_2(0.5 * gamma);
-    return geom_factor * photon_polarization * gamma * DeltaTsq / (denom * gsl_expm1(u));
-}
-
-double SolarModel::Gamma_TP_resonant_m0(double omega, double r) {
-    static const double geom_factor = 1.0;
-    static const double photon_polarization = 2.0;
-    const double m_keV = 0.0;  // 0 eV
-    
-    // Full Breit-Wigner calculation inline
-    if (omega < 1e-6) return 0;
-    
     double T = temperature_in_keV(r);
     double u = omega / T;
     double gamma = -gsl_expm1(-u) * interpolate_rosseland_opacity(r);
     // --- NEW: narrow resonance window around omega_pl(r) = m_a ---
     gamma = std::max(gamma, 1e-4);
-    double xi2 = gamma * omega; //The Lorentzian width parameter in squared-frequency space.
+    double xi2 = gamma * omega;
     double om2 = omega * omega;
     double fwhm = (om2 > xi2) ? (sqrt(om2 + xi2) - sqrt(om2 - xi2)) : sqrt(om2 + xi2);
     double om_pl_sq = omega_pl_squared(r);
-    if (std::abs(std::sqrt(om_pl_sq) - m_keV) > 18.0 * fwhm) { return 0; }
+    if (std::abs(std::sqrt(om_pl_sq) - m_keV) > 200.0 * fwhm) { return 0; }
     // -----------------------------------------------------------
     double average_b_field_sq = gsl_pow_2(bfield(r)) / 3.0;
     double DeltaTsq = g_agg * g_agg * average_b_field_sq / 4.0;
-    
+
     double Delta_gamma = -om_pl_sq / (2.0 * omega);
-    
+
     double m2 = m_keV * m_keV;
     double Delta_a = -m2 / (2.0 * omega);
     double Delta_diff = Delta_gamma - Delta_a;
-    
+
     double denom = gsl_pow_2(Delta_diff) + gsl_pow_2(0.5 * gamma);
     return geom_factor * photon_polarization * gamma * DeltaTsq / (denom * gsl_expm1(u));
 }
+
+
+
+// 12 wrapper functions for 125 to 137 eV (0.125 keV to 0.137 keV)
+double SolarModel::Gamma_TP_resonant_m125(double omega, double r) { return Gamma_TP_resonant(omega, r, 0.125); } // 125 eV
+double SolarModel::Gamma_TP_resonant_m126(double omega, double r) { return Gamma_TP_resonant(omega, r, 0.126); } // 126 eV
+double SolarModel::Gamma_TP_resonant_m127(double omega, double r) { return Gamma_TP_resonant(omega, r, 0.127); } // 127 eV
+double SolarModel::Gamma_TP_resonant_m128(double omega, double r) { return Gamma_TP_resonant(omega, r, 0.128); } // 128 eV
+double SolarModel::Gamma_TP_resonant_m129(double omega, double r) { return Gamma_TP_resonant(omega, r, 0.129); } // 129 eV
+double SolarModel::Gamma_TP_resonant_m130(double omega, double r) { return Gamma_TP_resonant(omega, r, 0.130); } // 130 eV
+double SolarModel::Gamma_TP_resonant_m131(double omega, double r) { return Gamma_TP_resonant(omega, r, 0.131); } // 131 eV
+double SolarModel::Gamma_TP_resonant_m132(double omega, double r) { return Gamma_TP_resonant(omega, r, 0.132); } // 132 eV
+double SolarModel::Gamma_TP_resonant_m133(double omega, double r) { return Gamma_TP_resonant(omega, r, 0.133); } // 133 eV
+double SolarModel::Gamma_TP_resonant_m134(double omega, double r) { return Gamma_TP_resonant(omega, r, 0.134); } // 134 eV
+double SolarModel::Gamma_TP_resonant_m135(double omega, double r) { return Gamma_TP_resonant(omega, r, 0.135); } // 135 eV
+double SolarModel::Gamma_TP_resonant_m136(double omega, double r) { return Gamma_TP_resonant(omega, r, 0.136); } // 136 eV
+double SolarModel::Gamma_TP_resonant_m137(double omega, double r) { return Gamma_TP_resonant(omega, r, 0.137); } // 137 eV
+
 
 double SolarModel::Gamma_plasmon(double omega, double r) { return Gamma_TP(omega, r) + Gamma_LP(omega, r); }
 

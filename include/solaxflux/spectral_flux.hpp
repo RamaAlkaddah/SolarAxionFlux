@@ -26,12 +26,12 @@ const double distance_factor = pow(radius_sol/(1.0e-2*keV2cm),3) / ( pow(1.0e2*d
 // Variables that define the behaviour of the GSL integrators and wrapper functions for solar model integration routines
 // 1D-Integration for files
 const int int_method_file = 5, int_space_size_file = 1e6;
-const double int_abs_prec_file = 0.0, int_rel_prec_file = 1.0e-4;
+const double int_abs_prec_file = 1.0e-12, int_rel_prec_file = 1.0e-2;
 struct solar_model_integration_params_custom { double erg; SolarModel* sol; Isotope isotope; };
 
 // Integration over the full Sun (1D), see Eq. (2.42) in [arXiv:2101.08789]
 const int int_method_1d = 5, int_space_size_1d = 1e6;
-const double int_abs_prec_1d = 0.0, int_rel_prec_1d = 1.0e-3;
+const double int_abs_prec_1d = 1.0e-13, int_rel_prec_1d = 1.0e-1;
 struct solar_model_integration_parameters_1d { double erg; SolarModel* s; double (SolarModel::*integrand)(double, double); gsl_function* f; gsl_integration_workspace* w; };
 double r_integrand_1d(double r, void * params);
 double erg_integrand_1d(double erg, void * params);

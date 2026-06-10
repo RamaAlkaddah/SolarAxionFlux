@@ -25,10 +25,21 @@ PYBIND11_MODULE(pyaxionflux, m) {
     .def("save_solar_model_data", &SolarModel::save_solar_model_data, "Save all solar model data relevant for axion computations.", "output_file_root"_a, "ergs"_a, "n_radii"_a=1000)
     
     
+    .def("tp_resonant_m124", pybind11::vectorize(&SolarModel::Gamma_TP_resonant_m124), "Resonant transverse plasmon production rate (m_a = 124 eV)", "omega"_a, "radius"_a)
+    .def("tp_resonant_m125", pybind11::vectorize(&SolarModel::Gamma_TP_resonant_m125), "Resonant transverse plasmon production rate (m_a = 125 eV)", "omega"_a, "radius"_a)
+    .def("tp_resonant_m126", pybind11::vectorize(&SolarModel::Gamma_TP_resonant_m126), "Resonant transverse plasmon production rate (m_a = 126 eV)", "omega"_a, "radius"_a)
+    .def("tp_resonant_m127", pybind11::vectorize(&SolarModel::Gamma_TP_resonant_m127), "Resonant transverse plasmon production rate (m_a = 127 eV)", "omega"_a, "radius"_a)
+    .def("tp_resonant_m128", pybind11::vectorize(&SolarModel::Gamma_TP_resonant_m128), "Resonant transverse plasmon production rate (m_a = 128 eV)", "omega"_a, "radius"_a)
+    .def("tp_resonant_m129", pybind11::vectorize(&SolarModel::Gamma_TP_resonant_m129), "Resonant transverse plasmon production rate (m_a = 129 eV)", "omega"_a, "radius"_a)
+    .def("tp_resonant_m130", pybind11::vectorize(&SolarModel::Gamma_TP_resonant_m130), "Resonant transverse plasmon production rate (m_a = 130 eV)", "omega"_a, "radius"_a)
     .def("tp_resonant_m131", pybind11::vectorize(&SolarModel::Gamma_TP_resonant_m131), "Resonant transverse plasmon production rate (m_a = 131 eV)", "omega"_a, "radius"_a)
-    .def("tp_resonant_m11", pybind11::vectorize(&SolarModel::Gamma_TP_resonant_m11), "Resonant transverse plasmon production rate (m_a = 11 eV)", "omega"_a, "radius"_a)
-    .def("tp_resonant_m0", pybind11::vectorize(&SolarModel::Gamma_TP_resonant_m0), "Resonant transverse plasmon production rate (m_a = 0 eV)", "omega"_a, "radius"_a)
-  ;
+    .def("tp_resonant_m132", pybind11::vectorize(&SolarModel::Gamma_TP_resonant_m132), "Resonant transverse plasmon production rate (m_a = 132 eV)", "omega"_a, "radius"_a)
+    .def("tp_resonant_m133", pybind11::vectorize(&SolarModel::Gamma_TP_resonant_m133), "Resonant transverse plasmon production rate (m_a = 133 eV)", "omega"_a, "radius"_a)
+    .def("tp_resonant_m134", pybind11::vectorize(&SolarModel::Gamma_TP_resonant_m134), "Resonant transverse plasmon production rate (m_a = 134 eV)", "omega"_a, "radius"_a)
+    .def("tp_resonant_m135", pybind11::vectorize(&SolarModel::Gamma_TP_resonant_m135), "Resonant transverse plasmon production rate (m_a = 135 eV)", "omega"_a, "radius"_a)
+    .def("tp_resonant_m136", pybind11::vectorize(&SolarModel::Gamma_TP_resonant_m136), "Resonant transverse plasmon production rate (m_a = 136 eV)", "omega"_a, "radius"_a)
+    .def("tp_resonant_m137", pybind11::vectorize(&SolarModel::Gamma_TP_resonant_m137), "Resonant transverse plasmon production rate (m_a = 137eV)", "omega"_a, "radius"_a)
+    ;
   m.def("calculate_spectra", &py11_calc_spectral_flux_up_to_rmax, "Integrates 'Primakoff' and/or 'ABC' flux from solar model file up to radius rmax.",  "ergs"_a, "rmax"_a, "solar_model"_a, "output_file_root"_a="", "process"_a="Primakoff");
   m.def("save_spectra", &py11_save_spectral_flux_for_different_radii, "Integrates 'Primakoff' and/or 'ABC' flux from solar model file for different radii and saves the results as a text file.",  "ergs"_a, "radii"_a, "solar_model_file"_a, "output_file_root"_a, "process"_a="Primakoff", "op_code"_a="OP");
   const std::vector<double> v1 = { 1.0, 20.0 };

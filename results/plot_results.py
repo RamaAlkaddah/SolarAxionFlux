@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 plt.rcParams['font.family'] = 'monospace'
 plt.rcParams['font.monospace'] = ['Courier New']
-plt.rcParams['font.size']= 14
+plt.rcParams['font.size']= 12
 from scipy.interpolate import interp1d
 
 # Get the path of the script
@@ -63,28 +63,11 @@ except OSError as e:
     raise
 
 # Load resonant TP files (Breit-Wigner resonant, AGSS09 TP) - with fallback for missing files
-try:
-    TP_resonant_m131 = np.genfromtxt(script_path+"/TP_resonant_m131.dat")
-except:
-    TP_resonant_m131 = None
-    print("WARNING: TP_resonant_m131.dat not found, skipping this file.")
-try:
-    TP_resonant_m11 = np.genfromtxt(script_path+"/TP_resonant_m11.dat")
-except:
-    TP_resonant_m11 = None
-    print("WARNING: TP_resonant_m11.dat not found, skipping this file.")
-#try:
- #   TP_resonant_m10 = np.genfromtxt(script_path+"/TP_resonant_m10.dat")
-#except:
- #   TP_resonant_m10 = None
-  #  print("WARNING: TP_resonant_m10.dat not found, skipping this file.")
-try:
-    TP_resonant_m0 = np.genfromtxt(script_path+"/TP_resonant_m0.dat")
-except:
-    TP_resonant_m0 = None
-    print("WARNING: TP_resonant_m0.dat not found, skipping this file.")
-
-# Conversion factor
+TP_resonant_m131 = np.genfromtxt(script_path+"/TP_resonant_m131.dat")
+TP_resonant_m11 = np.genfromtxt(script_path+"/TP_resonant_m11.dat")
+tp_resonant_data = {}
+ 
+# Conversion factor 
 conv_factor = 1.0e-4/(365.0*24.0*60.0*60.0*1.0e10)
 
 ## Validation plots for axion-photon interactions
@@ -133,16 +116,9 @@ plt.savefig(script_path+"/validation_Tplasmon.pdf", bbox_inches='tight')
 plt.close()
 
 
-fig, ax = plt.subplots()
-plot_setup()
 scale=(1.0e10)
 #scale=(1.0)
 
-#ax.plot(omega, 6.02*omega**2.481*np.exp(-omega/1.205),':', color=col_agss09, label=r'Primakoff approx. (BP04)')
-#ax.plot(ref1[:,0], conv_factor*(1.0e4/50.0)*ref1[:,1], '-', color=col_b16agss09, label=r'Primakoff (Redondo)')
-#ax.plot(res7[:,0], res7[:,1]/1.0e10, 'k-', label=r'LP (AGSS09)')
-
-# Create a common energy grid
 energy_min = 0.001  # keV
 energy_max = 10.0   # keV
 common_energy = np.logspace(np.log10(energy_min), np.log10(energy_max), 500)
@@ -151,40 +127,51 @@ common_energy = np.logspace(np.log10(energy_min), np.log10(energy_max), 500)
 flux2 = interp1d(res9[:,0], (res9[:,1])/scale, bounds_error=False, fill_value=0)(common_energy)
 flux3 = interp1d(res8[:,0], (res8[:,1])/scale, bounds_error=False, fill_value=0)(common_energy)
 flux4 = interp1d(res1[:,0], (res1[:,1]/scale), bounds_error=False, fill_value=0)(common_energy)
-
 # Sum them
 total_flux = flux2 + flux3 + flux4
+# Save total flux to file with better formatting
+data = np.column_stack((common_energy, total_flux))
+with open(script_path + "/all_fluxes_SDD.dat", 'w') as f:
+    f.write("# all fluxes: LP_Rosseland + TP_OffResonance + Primakoff\n")
+    f.write("# Columns: Energy [keV] |  Flux [cm^-2 s^-1 keV^-1]\n")
+    np.savetxt(f, data, fmt='%.6e')
+plt.close()
+
+fig, ax = plt.subplots()
+plot_setup()
 
 # Plot individual components
-ax.plot(ref8[:,0], ((ref8[:,1]/scale)*(3/5)**2 /4), '.-', color='gold', label=r'LP$_{Caputo} * (3/5)^2$') #correct  field values *(3/5)**2 /4
-ax.plot(res9[:,0], ((res9[:,1])/scale), 'k-', label=r'LP$_{Rosseland}$')
+ax.plot(ref8[:,0], ((ref8[:,1]/scale)*(3/5)**2 /4), '.-', color='gold', label=r'LP$_{Caputo} \times\left(\frac{3}{5}\right)^2$') #correct  field values *(3/5)**2 /4
+ax.plot(res9[:,0], ((res9[:,1])/scale), 'k-', label=r'LP$_{Rosseland}$ ') #this is the Rosseland one based on Rosseland, but we want to show the magnetic field uncertainty band
 ax.plot(res8[:,0],((res8[:,1]) /scale),'k--',color='red',label=r'TP$_{Off-Res}$')
 
 #ax.plot(ref7[:,0], (ref7[:,1]/5.0e-1)*1.0/1.7856, '--', color='orange', label=r'LP (O´Hare)') # correct coupling and angular average
 ax.plot(res1[:,0], (res1[:,1]/scale), 'k--',color='blue', label=r'Primakoff')
 
-# Plot total flux (the sum of all 4)
-ax.plot(common_energy, total_flux, 'k--',linewidth=2 ,color='magenta', label=r'Total')
+# Load the files
+flux_full = np.genfromtxt(script_path + "/all_fluxes_fullR.dat")
+flux_limited = np.genfromtxt(script_path + "/all_fluxes_SDD.dat")
 
+# Plot both
+ax.plot(flux_full[:,0], flux_full[:,1], linewidth=2, color='magenta', label=r'Total flux', alpha=0.7)
+#ax.plot(flux_limited[:,0], flux_limited[:,1], linewidth=2, color='green', linestyle='--', label=r'Total flux (0.10 R$_{\odot}$)')
 
 ''' befor i edit them:
 Caputo ×(3/5)² ≈ 0.36 (to account for field scaling differences) *(3/5)**2
 Giannotti ×4 (to normalize coupling constants)'''
-#ax.set_title(r'Axion-photon interactions, $g_{a\gamma} = \SI{5e-11}{\GeV^{-1}}$, OP opacities')
+#ax.set_title(r'axion fluxes up to 0.47 R$_\odot$')
+
 ax.set_xlabel(r'$\omega$ [keV]')
 ax.set_ylabel(r'$\mathrm{d}\Phi_a/\mathrm{d}\omega$ [\SI{}{\per\cm\squared\per\keV\per\s}]')
 ax.set_xlim([1.0e-3,10])
-ax.set_ylim([2.0e3, 1.0e12])
-
+ax.set_ylim([1.0e0, 1.0e12])
 ax.set_yscale('log')
 ax.set_xscale('log')
-plt.legend(loc='upper left')
-ax.legend(frameon=False)
+ax.legend(frameon=False, loc='lower right')
 
 plt.savefig(script_path+"/validation_Lplasmon.pdf", bbox_inches='tight')
 #plt.show()
 plt.close()
-#plot tp + primakoff 
 
 ## Validation plots for axion-electron interactions
 fig, ax = plt.subplots()
@@ -225,7 +212,6 @@ plt.savefig(script_path+"/validation_fe57.pdf")
 plt.close()
 
 
-
 ## Massive TP comparison plot (AGSS09 TP)
 # ==========================================
 # Magnetic-field uncertainty helper, Flux scales as B^2
@@ -239,65 +225,21 @@ plot_setup()
 # TP (m_a = 0 eV)
 m0 = (res8[:,1] / scale)  #this is  off resonant one based on Rosseland, but we want to show the magnetic field uncertainty band
 B_low, B_high = magnetic_field_band(m0)
-ax.fill_between(
-    res8[:,0],
-    B_low,
-    B_high,
-    color="#4EAF21",
-    alpha=0.20,
-    linewidth=0
-)
-ax.plot(
-    res8[:,0],
-    m0,
-    'k--',
-    color="#000000",
-    linewidth=2,
-    alpha=0.7, label=r'TP (m$_a$ = 0 eV)'
-)
+ax.fill_between(res8[:,0],B_low,B_high, color="#4EAF21", alpha=0.20,linewidth=0)
+ax.plot(res8[:,0], m0, 'k--', color="#000000", linewidth=2, alpha=0.7, label=r'TP (m$_a$ = 0 eV)')
 # =========================
 # TP (m_a = 131 eV)
 m131 = (TP_resonant_m131[:,1] / scale) 
 B_low, B_high = magnetic_field_band(m131)
-ax.fill_between(
-    TP_resonant_m131[:,0],
-    B_low,
-    B_high,
-    color='#1f77b4',
-    alpha=0.20,
-    linewidth=0
-)
-ax.plot(
-    TP_resonant_m131[:,0],
-    m131,
-    '-',
-    color='#1f77b4',
-    linewidth=2,
-    alpha=0.7, label=r'TP (m$_a$ = 131 eV)'
-)
+ax.fill_between(TP_resonant_m131[:,0], B_low, B_high, color='#1f77b4', alpha=0.20, linewidth=0)
+ax.plot(TP_resonant_m131[:,0], m131, '-', color='#1f77b4', linewidth=2, alpha=0.7, label=r'TP (m$_a$ = 131 eV)')
 # =========================
 # TP (m_a = 11 eV)
 m11 = (TP_resonant_m11[:,1] / scale) 
 B_low, B_high = magnetic_field_band(m11)
-ax.fill_between(
-    TP_resonant_m11[:,0],
-    B_low,
-    B_high,
-    color="#eb327f",
-    alpha=0.20,
-    linewidth=0
-)
-ax.plot(
-    TP_resonant_m11[:,0],
-    m11,
-    '-',
-    color="#eb327f",
-    linewidth=2,
-    alpha=0.7, label=r'TP (m$_a$ = 11 eV)'
-)
-#ax.plot(ref5[:,0], ref5[:,1]*1.4995, '-', color='green', label=r'TP (Giannotti)')#correct B conversion in giannotti result and adjust coupling constant
+ax.fill_between(TP_resonant_m11[:,0],B_low, B_high, color="#eb327f", alpha=0.20, linewidth=0)
+ax.plot(TP_resonant_m11[:,0], m11, '-', color="#eb327f", linewidth=2, alpha=0.7, label=r'TP (m$_a$ = 11 eV)')
 ax.plot(res1[:,0], (res1[:,1]/scale), 'k--',color='blue', label=r'Primakoff')
-
 ax.set_xlabel(r'$\omega$ [keV]')
 ax.set_ylabel(r'$\mathrm{d}\Phi_a/\mathrm{d}\omega$ ' r'[\SI{e10}{\per\cm\squared\per\keV\per\s}]')
 ax.set_xlim([0.001, 20])
@@ -305,22 +247,121 @@ ax.set_ylim([0.001, 2e3])
 ax.set_yscale('log')
 ax.set_xscale('log')
 
-ax.legend(frameon=False, loc='upper left')
+ax.legend(frameon=False, loc='lower right')
 
 # ax.grid(True, alpha=0.3, which='both')
 
 plt.savefig(script_path + "/massive_TP_comparison.pdf", bbox_inches='tight')
 
-plt.show()
+#plt.show()
 
 plt.close()
-#plt.close()
+
+
+# for the extra massive TP , Load data
+tp_resonant_data = {}
+masses_list = np.arange(112, 125)  # 112-124 eV
+for n in masses_list:
+    tp_resonant_data[n] = np.genfromtxt(script_path + f'/TP_resonant_m{n}.dat')
+
+fig, ax = plt.subplots()
+plot_setup()
+
+# continuous colormap instead of discrete colors
+import matplotlib.cm as cm
+import matplotlib.colors as mcolors
+
+# colormap and normalization for 6 masses
+cmap = cm.get_cmap('viridis',13)
+norm = mcolors.Normalize(vmin=112, vmax=124)
+
+# Plot all masses with color mapped to m_a
+for i, mass in enumerate(masses_list):
+    mass_data = tp_resonant_data[mass]
+    flux = mass_data[:, 1] / scale
+    ax.plot(mass_data[:, 0], flux, '-', color=cmap(norm(mass)), linewidth=2, alpha=0.9)
+
+# Add colorbar instead of legend
+sm = cm.ScalarMappable(cmap=cmap, norm=norm)
+sm.set_array([])
+cbar = plt.colorbar(sm, ax=ax)
+cbar.set_label(r'$m_a$ [eV]')
+
+# Axis formatting
+ax.set_xlabel(r'$\omega$ [keV]')
+ax.set_ylabel(r'$\mathrm{d}\Phi_a/\mathrm{d}\omega$ ' r'[$10^{10}$ cm$^{-2}$ keV$^{-1}$ s$^{-1}$]')
+ax.set_xlim(1e-3, 100)
+ax.set_ylim(1e-7, 1e3)
+ax.set_xscale('log')
+ax.set_yscale('log')
+
+plt.savefig(script_path + "/all_massive_TP_colormap.pdf", bbox_inches='tight')
+#plt.show()
+plt.close()
+
+
+
+
+#in order to see how each flux is effected by the mass
+import numpy as np
+import matplotlib.pyplot as plt
+
+masses = np.arange(112, 125)  # 112-124 eV
+peak_flux = []
+
+for n in masses:
+    data = np.genfromtxt(script_path + f'/TP_resonant_m{n}.dat')
+    flux = data[:, 1] / scale
+    peak_flux.append(np.max(flux))
+
+peak_flux = np.array(peak_flux)
+
+fig, ax = plt.subplots()
+plot_setup()
+
+ax.plot(masses, peak_flux, 'o-', linewidth=2, markersize=8)
+ax.set_xlim(1e-3, 11)
+ax.set_ylim(1e-7, 1e3)
+ax.set_xlabel(r'$m_a$ [eV]')
+ax.set_ylabel(r'Peak flux  [$10^{10}$ cm$^{-2}$ s$^{-1}$]')
+ax.set_yscale('log')
+
+plt.savefig(script_path + "/peak_flux_vs_mass.pdf", bbox_inches='tight')
+#plt.show()
+plt.close()
+
+
+
+
+
+'''
 import numpy as np
 # Coupling constant normalization
 g_10_squared = 0.25
 total_flux_m131 = np.trapezoid(TP_resonant_m131[:, 1], TP_resonant_m131[:, 0]) / g_10_squared
-total_flux_m11 = np.trapezoid(TP_resonant_m11[:, 1], TP_resonant_m11[:, 0]) / g_10_squared
+#total_flux_m11 = np.trapezoid(TP_resonant_m11[:, 1], TP_resonant_m11[:, 0]) / g_10_squared
 total_flux_m0 = np.trapezoid(res8[:, 1], res8[:, 0]) / g_10_squared
 print(f"\nTotal TP flux (m=131 eV): {total_flux_m131:.4e} g_10^2 cm^-2 s^-1")
-print(f"Total TP flux (m=11 eV): {total_flux_m11:.4e} g_10^2 cm^-2 s^-1")
+#print(f"Total TP flux (m=11 eV): {total_flux_m11:.4e} g_10^2 cm^-2 s^-1")
 print(f"Total m0 non-resonant flux: {total_flux_m0:.4e} g_10^2 cm^-2 s^-1")
+
+# Define energy range
+E_min = 1e-2  # 0.01 keV
+E_max = 10.0  # 10 keV
+
+# Filter data for both datasets
+mask_limited = (flux_limited[:, 0] >= E_min) & (flux_limited[:, 0] <= E_max)
+mask_full = (flux_full[:, 0] >= E_min) & (flux_full[:, 0] <= E_max)
+
+# Extract filtered data
+flux_limited_filtered = flux_limited[mask_limited]
+flux_full_filtered = flux_full[mask_full]
+
+# Calculate integrals over this range
+sdd_f = np.trapezoid(flux_limited_filtered[:, 1], flux_limited_filtered[:, 0])
+full_f = np.trapezoid(flux_full_filtered[:, 1], flux_full_filtered[:, 0])
+
+print(f"Total flux up to 0.47 R_sun ({E_min}-{E_max} keV): {sdd_f:.4e} cm^-2 s^-1")
+print(f"Total flux up to 1.0 R_sun ({E_min}-{E_max} keV): {full_f:.4e} cm^-2 s^-1")
+percentage = (sdd_f/full_f)*100
+print(f"Percentage of flux up to 0.47 R_sun compared to 1.0 R_sun: {percentage:.2f}%")'''

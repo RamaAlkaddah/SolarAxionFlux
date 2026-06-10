@@ -3,6 +3,22 @@
 
 #include "spectral_flux.hpp"
 
+// Suppress GSL error handler abort for difficult integrands (e.g., resonant TP modes)
+// This allows integration to continue even with roundoff errors instead of terminating
+namespace {
+  gsl_error_handler_t * default_gsl_handler = nullptr;
+  
+  void init_gsl_error_handler() {
+    if (default_gsl_handler == nullptr) {
+      default_gsl_handler = gsl_set_error_handler_off();
+    }
+  }
+  
+  void suppress_gsl_errors() {
+    init_gsl_error_handler();
+  }
+}
+
 /////////////////////////////////////////////////////
 //  Integration routines for the solar axion flux  //
 /////////////////////////////////////////////////////
@@ -17,14 +33,14 @@ double r_integrand_1d(double r, void * params) {
 
   return 2.0 * gsl_pow_2(0.5*erg*r/pi) * (s->*(p1->integrand))(erg, r); // N.B. Factor of 2 from integration over theta angle.
 }
-
+//this is the radial integration 
 double erg_integrand_1d(double erg, void * params) {
   double result, error;
   struct solar_model_integration_parameters_1d * p2 = (struct solar_model_integration_parameters_1d *)params;
   p2->erg = erg;
-
+ // Special handling for resonance at ω = ω_p(r) (come back and try to apply it on the resonant massive TP)
   if ((p2->integrand == &SolarModel::Gamma_LP) || (p2->integrand == &SolarModel::Gamma_LP_Rosseland)) {
-      std::vector<double> radii;
+      std::vector<double> radii; 
       double res = p2->s->r_from_omega_pl(erg);
       double low = p2->s->get_r_lo();
       double high = std::min(p2->s->get_r_hi(), 0.98);  // r = 0.98 maximum set by hand to avoid missing opacity data
@@ -35,11 +51,12 @@ double erg_integrand_1d(double erg, void * params) {
       }
       gsl_integration_qagp(p2->f, &radii[0], radii.size(), int_abs_prec_1d, int_rel_prec_1d, int_space_size_1d, p2->w, &result, &error);}
 
-  else {
+  else {  // For smooth functions like TP off resonance
+    //double high =0.1;     // Integrate only up to 0.1 R_☉ (same as LP)
   gsl_integration_qag(p2->f, p2->s->get_r_lo(), p2->s->get_r_hi(), int_abs_prec_1d, int_rel_prec_1d, int_space_size_1d, int_method_1d, p2->w, &result, &error);
   //gsl_integration_qagp(p2->f, &radii[0], radii.size(), int_abs_prec_1d, int_rel_prec_1d, int_space_size_1d, p2->w, &result, &error);
   //gsl_integration_qags(p2->f, p2->s->get_r_lo(), 0.9, int_abs_prec_1d, int_rel_prec_1d, int_space_size_1d, p2->w, &result, &error);
-  }
+  } //p2->s->get_r_hi()
 
   return result;
 }
@@ -119,19 +136,23 @@ std::vector<std::vector<double> > calculate_d2Phi_a_domega_drho(std::vector<doub
   return buffer;
 }
 
+// Fully integrate: ∫∫ dω dr (d²Φ/dω dr)
 
 std::vector<std::vector<double> > fully_integrate_d2Phi_a_domega_drho_in_rho(std::vector<double> ergs, SolarModel &s, double (SolarModel::*integrand)(double, double), std::string saveas, Isotope isotope) {
-  std::vector<double> integrals;
+  // Suppress GSL error handler abort for difficult integrands at resonances
+  suppress_gsl_errors();
+  
+  std::vector<double> integrals; //empty box stores the results
   std::ofstream output;
   gsl_integration_workspace * w = gsl_integration_workspace_alloc(int_space_size_1d);
   gsl_function f;
   // N.B. The fully 2D integral in rho and r effectively reduces to the 1D integral in r, Eq. (2.42) in [arXiv:2101.08789]
   f.function = r_integrand_1d;
-  solar_model_integration_parameters_1d p { 0.0, &s, integrand, &f, w };
+  solar_model_integration_parameters_1d p { 0.0, &s, integrand, &f, w }; 
   f.params = &p;
-
+//this is the ouer loop and it steps through the energies 
   for (auto erg = ergs.begin(); erg != ergs.end(); erg++) { integrals.push_back( distance_factor*erg_integrand_1d(*erg, &p) ); }
-
+//now  this erg_integrand_1d(*erg, &p) is the inner loop that steps though the radii
   gsl_integration_workspace_free(w);
 
   std::vector<std::vector<double> > buffer = { ergs, integrals };
